@@ -29,14 +29,7 @@ onMounted(() => {
   nextTick(() => {
     // 直接通过选择器获取滚动容器
     const scrollContainer = document.getElementById('w-e-textarea-1').parentElement;
-    console.log(scrollContainer);
-    console.log(111111);
-
-
-
     scrollContainer.addEventListener('scroll', (e) => {
-      console.log(11111111);
-
       const scrollTop = e.target.scrollTop;
       const scrollLeft = e.target.scrollLeft;
       console.log('滚动位置：', scrollTop, scrollLeft);

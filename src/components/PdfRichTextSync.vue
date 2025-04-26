@@ -1,43 +1,48 @@
 <template>
   <div class="sync-container">
     <div class="pdf-container" ref="pdfContainer">
-      <iframe
-        :src="pdfSource"
-        class="pdf-iframe"
-        @load="onPdfLoaded"
-        ref="pdfIframe"
-      ></iframe>
+      <iframe :src="pdfSource" class="pdf-iframe" @load="onPdfLoaded" ref="pdfIframe"></iframe>
     </div>
     <div class="rich-text-container" ref="richTextContainer">
       <div class="editor-toolbar">
         <button @click="saveContent" class="save-btn">保存</button>
       </div>
       <div class="editor-wrapper">
-        <Toolbar
-          style="border-bottom: 1px solid #ccc"
-          :editor="editorRef"
-          :defaultConfig="toolbarConfig"
-          :mode="mode"
-        />
-        <Editor
-          style="height: calc(100% - 40px); overflow-y: auto;"
-          v-model="richTextContent"
-          :defaultConfig="editorConfig"
-          :mode="mode"
-          @onCreated="handleCreated"
-          @onChange="handleChange"
-          @scroll="onEditorScroll"
-        />
+        <Toolbar style="border-bottom: 1px solid #ccc" :editor="editorRef" :defaultConfig="toolbarConfig"
+          :mode="mode" />
+        <Editor style="height: calc(100% - 40px); overflow-y: auto;" v-model="richTextContent"
+          :defaultConfig="editorConfig" :mode="mode" @onCreated="handleCreated" @onChange="handleChange"
+          @scroll="onEditorScroll" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, shallowRef, onBeforeUnmount } from 'vue'
+import { ref, onMounted, watch, shallowRef, onBeforeUnmount, nextTick } from 'vue'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css'
 import axios from 'axios'
+
+
+onMounted(() => {
+  nextTick(() => {
+    // 直接通过选择器获取滚动容器
+    const scrollContainer = document.getElementById('w-e-textarea-1').parentElement;
+    console.log(scrollContainer);
+    console.log(111111);
+
+
+
+    scrollContainer.addEventListener('scroll', (e) => {
+      console.log(11111111);
+
+      const scrollTop = e.target.scrollTop;
+      const scrollLeft = e.target.scrollLeft;
+      console.log('滚动位置：', scrollTop, scrollLeft);
+    });
+  })
+})
 
 const props = defineProps({
   pdfSource: {
@@ -111,19 +116,19 @@ const onPdfLoaded = () => {
 const onPdfScroll = (event) => {
   if (isScrolling) return
   isScrolling = true
-  
+
   const iframe = pdfIframe.value
   const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
   const pdfScrollTop = iframeDoc.documentElement.scrollTop
   const pdfHeight = iframeDoc.documentElement.scrollHeight
   const editor = editorRef.value
   const editorHeight = editor.$el.scrollHeight
-  
+
   const ratio = pdfScrollTop / pdfHeight
   const editorScrollTop = ratio * editorHeight
-  
+
   editor.$el.scrollTop = editorScrollTop
-  
+
   setTimeout(() => {
     isScrolling = false
   }, 100)
@@ -133,19 +138,19 @@ const onPdfScroll = (event) => {
 const onEditorScroll = (event) => {
   if (isScrolling) return
   isScrolling = true
-  
+
   const editor = editorRef.value
   const editorScrollTop = editor.$el.scrollTop
   const editorHeight = editor.$el.scrollHeight
   const iframe = pdfIframe.value
   const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
   const pdfHeight = iframeDoc.documentElement.scrollHeight
-  
+
   const ratio = editorScrollTop / editorHeight
   const pdfScrollTop = ratio * pdfHeight
-  
+
   iframeDoc.documentElement.scrollTop = pdfScrollTop
-  
+
   setTimeout(() => {
     isScrolling = false
   }, 100)
@@ -187,7 +192,7 @@ onBeforeUnmount(() => {
   const editor = editorRef.value
   if (editor == null) return
   editor.destroy()
-  
+
   // 移除PDF滚动事件监听
   const iframe = pdfIframe.value
   if (iframe) {
@@ -200,7 +205,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .sync-container {
   display: flex;
-  height: calc(100vh - 60px); /* 减去导航栏高度 */
+  height: calc(100vh - 60px);
+  /* 减去导航栏高度 */
   overflow: hidden;
 }
 
@@ -264,4 +270,4 @@ onBeforeUnmount(() => {
 :deep(.w-e-text p) {
   margin-bottom: 1em;
 }
-</style> 
+</style>
